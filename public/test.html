@@ -1,0 +1,90 @@
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script> -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导入文件</title>
+</head>
+
+<body>
+    <h1>导入文件</h1>
+    <input type="file" id="fileInput">
+    <br><br>
+    <div id="loader" style="display: none;">请稍等...</div> <!-- Loader element -->
+    <table id="excelTable" border="1" style="display: none;"> <!-- Hide table initially -->
+        <thead>
+            <tr id="tableHeader"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script src="js/xlsx.full.min.js"></script>
+    <script>
+        const excelFields = [
+            "姓名",
+            "工号"
+        ];
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+
+            if (!file) return;
+
+            if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+                alert('需要一个Excel文件.');
+                return;
+            }
+
+            // Show loader
+            document.getElementById('loader').style.display = 'block';
+            // Hide table
+            document.getElementById('excelTable').style.display = 'none';
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+
+                const tableHeader = document.getElementById('tableHeader');
+                tableHeader.innerHTML = '';
+                // Create table headers
+                excelFields.forEach(field => {
+                    const th = document.createElement('th');
+                    th.textContent = field;
+                    tableHeader.appendChild(th);
+                });
+
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                // Create table rows and cells from the Excel data
+                json.forEach(row => {
+                    const tr = document.createElement('tr');
+                    excelFields.forEach(field => {
+                        const td = document.createElement('td');
+                        td.textContent = row[field] || ''; // Handle missing data
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+
+                // Hide loader
+                document.getElementById('loader').style.display = 'none';
+                // Show table
+                document.getElementById('excelTable').style.display = 'table';
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        document.getElementById('fileInput').addEventListener('change', handleFile);
+    </script>
+</body>
+
+</html>

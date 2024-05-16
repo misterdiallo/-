@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to JSON Converter</title>
+</head>
+
+<body>
+    <h2>Excel to JSON Converter</h2>
+    <input type="file" id="excel-file" accept=".xlsx, .xls">
+    <hr>
+    <table id="excel-table">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>学院</th>
+                <th>工号</th>
+                <th>姓名</th>
+                <th>考核分数</th>
+                <th>名次</th>
+                <th>评价等次</th>
+                <th>学期</th>
+                <th>备注</th>
+                <th>说明</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <textarea id="json-output" cols="50" rows="10"></textarea>
+    <script src="js/xlsx.full.min.js"></script>
+
+    <script>
+        document.getElementById('excel-file').addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet_name_list = workbook.SheetNames;
+                var worksheet = workbook.Sheets[sheet_name_list[0]];
+
+                var table = document.getElementById('excel-table').getElementsByTagName('tbody')[0];
+                table.innerHTML = "";
+
+                var jsonOutput = [];
+
+                for (var row of Object.keys(worksheet)) {
+                    if (row === '!ref' || row.startsWith('_')) continue;
+
+                    var rowData = {};
+                    for (var col in worksheet[row]) {
+                        if (!col.startsWith('!')) {
+                            var cellValue = worksheet[row][col].v;
+                            rowData[col] = cellValue;
+                        }
+                    }
+                    jsonOutput.push(rowData);
+
+                    var newRow = table.insertRow(-1);
+                    for (var i = 0; i < 10; i++) {
+                        var newCell = newRow.insertCell(i);
+                        var cellValue = rowData[String.fromCharCode(65 + i)];
+                        newCell.textContent = cellValue;
+                    }
+                }
+
+                document.getElementById('json-output').value = JSON.stringify(jsonOutput, null, 2);
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+    </script>
+
+</body>
+
+</html>

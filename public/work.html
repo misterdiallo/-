@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Upload</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <h1>Excel Upload</h1>
+    <input type="file" id="fileInput">
+    <table id="dataTable" border="1">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>学院</th>
+                <th>工号</th>
+                <th>姓名</th>
+                <th>考核分数</th>
+                <th>名次</th>
+                <th>评价等次</th>
+                <th>学期</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table content will be added here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Function to populate the table with data
+        function populateTable(data) {
+            var tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            data.forEach(function (row, index) {
+                var newRow = '<tr>';
+                newRow += '<td>' + (index + 1) + '</td>'; // Add index as 序号
+                newRow += '<td>' + row["学院"] + '</td>';
+                newRow += '<td>' + row["工号"] + '</td>';
+                newRow += '<td>' + row["姓名"] + '</td>';
+                newRow += '<td>' + row["考核分数"] + '</td>';
+                newRow += '<td>' + row["名次"] + '</td>';
+                newRow += '<td>' + row["评价等次"] + '</td>';
+                newRow += '<td>' + row["学期"] + '</td>';
+                newRow += '</tr>';
+                tableBody.innerHTML += newRow;
+            });
+        }
+
+        // Load initial data from JSON file
+        fetch('/data/smalldata.json')
+            .then(response => response.json())
+            .then(function (initialData) {
+                // Populate the table with initial data
+                populateTable(initialData);
+
+                // Add event listener for file input change
+                document.getElementById('fileInput').addEventListener('change', function (event) {
+                    var file = event.target.files[0];
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        var data = new Uint8Array(e.target.result);
+                        var workbook = XLSX.read(data, { type: 'array' });
+                        var sheetName = workbook.SheetNames[0]; // Assuming first sheet
+                        var worksheet = workbook.Sheets[sheetName];
+                        var excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        console.log('Excel Data:', excelData); // Log Excel data to check
+
+                        // Create a set of 工号 from Excel data
+                        var excel工号Set = new Set(excelData.slice(1).map(row => row[1]));
+
+                        console.log('Excel 工号 Set:', excel工号Set); // Log Excel 工号 Set
+
+                        // Filter initialData based on 工号 from Excel file
+                        var filteredData = [];
+                        var filteredData = [];
+                        initialData.forEach(function (row) {
+                            var 工号 = parseInt(row["工号"]); // Convert 工号 to number
+                            if (excel工号Set.has(工号)) {
+                                filteredData.push(row);
+                            }
+                        });
+                        console.log('Filtered Data:', filteredData); // Log filtered data to check
+
+                        // Populate the table with filtered data
+                        populateTable(filteredData);
+                    };
+
+                    reader.readAsArrayBuffer(file);
+                });
+            })
+            .catch(error => console.error('Error loading initial data:', error));
+    </script>
+</body>
+
+</html>
