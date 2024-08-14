@@ -28,6 +28,32 @@ const Teacher = mongoose.model("Teacher", {
 
 app.use(bodyParser.json());
 
+const jsonFilePath = path.join(__dirname, '../data/源数据.json');
+
+app.post('/update-data', (req, res) => {
+    const newData = req.body;
+
+    fs.readFile(jsonFilePath, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading data file.');
+        }
+
+        let jsonData = JSON.parse(data);
+
+        // Append new data
+        jsonData = jsonData.concat(newData);
+
+        fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf8', (err) => {
+            if (err) {
+                return res.status(500).send('Error writing data file.');
+            }
+
+            res.send('Data updated successfully.');
+        });
+    });
+});
+
+
 // Route to get all teachers
 app.get("/teachers", async (req, res) => {
     try {

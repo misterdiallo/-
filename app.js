@@ -1,62 +1,45 @@
-const express = require("express");
-const path = require("path");
-const multer = require("multer");
-const xlsx = require("xlsx");
-
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
 const app = express();
+
+// Middleware
+app.use(bodyParser.json({ limit: '80mb' })); // Increase the limit to 50 MB
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from 'public' directory
+
+const jsonFilePath = path.join(__dirname, 'public/data/源数据.json');
+
+// API Endpoint to Update Data
+app.post('/update-data', (req, res) => {
+    const newData = req.body;
+
+    fs.readFile(jsonFilePath, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading data file.');
+        }
+
+        let jsonData = JSON.parse(data);
+
+        // Append new data
+        jsonData = jsonData.concat(newData);
+
+        fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf8', (err) => {
+            if (err) {
+                return res.status(500).send('Error writing data file.');
+            }
+
+            res.send('Data updated successfully.');
+        });
+    });
+});
+
+// Serve HTML file
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
-
-// Set storage engine for multer
-const storage = multer.diskStorage({
-    destination: "./uploads/",
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    },
-});
-
-// Initialize multer upload
-const upload = multer({
-    storage: storage,
-});
-
-// Serve static files (CSS, JS, images, etc.) from the "public" directory
-app.use(express.static(path.join(__dirname, "public")));
-
-// Route for uploading Excel file
-app.post("/upload", upload.single("excelFile"), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send("No file uploaded");
-    }
-
-    res.send("File uploaded successfully");
-});
-
-// Route for reading uploaded Excel file
-app.get("/read", (req, res) => {
-    // Load the uploaded Excel file
-    const workbook = xlsx.readFile("./uploads/" + req.query.filename);
-    // Assuming there's only one sheet in the Excel file
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    // Convert the worksheet to JSON object
-    const data = xlsx.utils.sheet_to_json(worksheet);
-
-    res.json(data);
-});
-
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-app.get("/test", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "test.html"));
-});
-app.get("/extract", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "extract.html"));
-});
-app.get("/work", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "work.html"));
-});
-
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

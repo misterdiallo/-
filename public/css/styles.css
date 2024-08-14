@@ -93,3 +93,71 @@ tbody::-webkit-scrollbar-thumb {
     background-color: #888;
     border-radius: 4px;
 }
+
+
+
+
+
+.search-box {
+    float: right;
+    padding: 6px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 200px;
+}
+
+
+/* Prevent scrolling on the body when the modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    overflow: hidden; /* Prevent overflow */
+}
+
+/* Fullscreen modal content */
+.modal-content {
+    background-color: #fefefe;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    border: none;
+    overflow-y: auto; /* Enable scrolling within the modal */
+}
+
+/* Close button */
+.close {
+    color: #aaa;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#excelData {
+    margin-top: 20px;
+    max-height: calc(100% - 60px);
+    overflow-y: auto; /* Scrollable if content exceeds modal height */
+}
